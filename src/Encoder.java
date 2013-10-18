@@ -16,42 +16,42 @@ public class Encoder {
 	private static final String DIC_FILE = "abc.dic";
 	private static final String FILENAME = "莎士比亚全集英文版.txt";
 	// The map to store encoding
-	static int[] freqArr =new  int[127];
+	static int[] freqArr = new int[127];
 	// The map to store frequency
 	static HashMap<Character, String> encodeMap = new HashMap<Character, String>();
 
 	static int delLen;
 
 	public static void main(String[] args) throws IOException {
-		//400ms
+		// 400ms
 		long start = System.currentTimeMillis();
 		StringBuilder content = readCode(freqArr);
 		long end = System.currentTimeMillis();
 		System.out.println(end - start);
-		
+
 		CLinkedList c = iniHuffList();
 
 		Node root = buildHuffTree(c);
 
 		getHuffEncode(root, "", encodeMap);
-		//1200ms
+		// 1200ms
 		start = System.currentTimeMillis();
-	
-//		char[] i=content.toString().toCharArray();
-		//比上面大约省了5毫秒= = 
+
+		// char[] i=content.toString().toCharArray();
+		// 比上面大约省了5毫秒= =
 		delLen = fulltoWrite(sbToCharArr(content));
 		end = System.currentTimeMillis();
 		System.out.println(end - start);
-		
-		//经过测试，此时间忽略不计
+
+		// 经过测试，此时间忽略不计
 		Encoder.write(DIC_FILE, writeFormat(encodeMap));
-		
+
 	}
 
 	private static char[] sbToCharArr(StringBuilder content) {
-		char[] i=new char[content.length()];
-		for(int y=0;y<i.length;y++)
-			i[y]=content.charAt(y);
+		char[] i = new char[content.length()];
+		for (int y = 0; y < i.length; y++)
+			i[y] = content.charAt(y);
 		return i;
 	}
 
@@ -89,9 +89,9 @@ public class Encoder {
 
 	private static CLinkedList iniHuffList() {
 		Node[] node = new Node[freqArr.length];
-		
-		for(int n = 0;n<node.length;n++){
-			node[n] = new Node((char)n, freqArr[n]);
+
+		for (int n = 0; n < node.length; n++) {
+			node[n] = new Node((char) n, freqArr[n]);
 		}
 		CLinkedList c = new CLinkedList();
 		for (Node no : node) {
@@ -100,8 +100,7 @@ public class Encoder {
 		return c;
 	}
 
-	private static StringBuilder readCode(int[] freqArr)
-			throws IOException {
+	private static StringBuilder readCode(int[] freqArr) throws IOException {
 		StringBuilder content = new StringBuilder("");
 
 		try {
@@ -110,7 +109,7 @@ public class Encoder {
 			while ((i = br.read()) != -1) {
 				char c = (char) i;
 				content.append(c);
-				 freqArr[c]++;
+				freqArr[c]++;
 			}
 
 		} catch (FileNotFoundException f) {
@@ -125,21 +124,21 @@ public class Encoder {
 		BufferedOutputStream bf = new BufferedOutputStream(
 				new FileOutputStream(COMPRESSED_FILE));
 		StringBuilder t = new StringBuilder();
-	
-		StringBuilder s = null;
+		// StringBuilder s = null;
 		/**
 		 * 不断的写入8bit长的字，最后多余不到的另外考虑
 		 */
-
+		long start = System.currentTimeMillis();
 		for (int i = 0; i < c.length; i++) {
-			String m = (encodeMap.get(c[i]));
-			s = writeBuffer(t.append(m), bf);
+			writeBuffer(t.append(encodeMap.get(c[i])), bf);
 		}
-		
-			int s1 = Integer.parseInt(t.toString(), BINARY);
-			delLen = BYTELONG - t.length();
-			bf.write(s1 << delLen);
-	
+		long end = System.currentTimeMillis();
+		System.out.println("here" + (end - start));
+
+		int s1 = Integer.parseInt(t.toString(), BINARY);
+		delLen = BYTELONG - t.length();
+		bf.write(s1 << delLen);
+
 		bf.close();
 		return delLen;
 	}
@@ -147,12 +146,22 @@ public class Encoder {
 	private static StringBuilder writeBuffer(StringBuilder i,
 			BufferedOutputStream bf) throws IOException {
 		// TODO Auto-generated method stub
-		int leng = i.length();
-		if (leng >= BYTELONG) {
-			bf.write(Integer.parseInt(i.substring(0, BYTELONG), BINARY));
-			return writeBuffer(i.delete(0, BYTELONG), bf);
+		
+		// if (leng >= BYTELONG) {
+		// bf.write(Integer.parseInt(i.substring(0, BYTELONG), BINARY));
+		// return writeBuffer(i.delete(0, BYTELONG), bf);
+		// }
+		int requirelen = i.length()-BYTELONG;
+		int q;
+		for (q = 0; q < requirelen;) {
+			bf.write(Integer.parseInt(i.substring(q, q += BYTELONG), BINARY));
 		}
-		return i;
+		return i.delete(0, q);
+
+		// for(int leng = i.length();leng>8;leng-=8){
+		// bf.write(Integer.parseInt(i.substring(0, BYTELONG), BINARY));
+		// }
+		// return i;
 
 	}
 
