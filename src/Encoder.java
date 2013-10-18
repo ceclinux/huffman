@@ -18,18 +18,19 @@ public class Encoder {
 	private static final String DIC_FILE = "abc.dic";
 	private static final String FILENAME = "莎士比亚全集英文版.txt";
 	// The map to store encoding
-	static HashMap<Character, Integer> freqmap = new HashMap<Character, Integer>(171);
+	static int[] freqArr =new  int[127];
 	// The map to store frequency
 	static HashMap<Character, String> encodeMap = new HashMap<Character, String>();
-	static ValueComparator vcomp = new ValueComparator(freqmap);
+//	static ValueComparator vcomp = new ValueComparator(freqmap);
 	static TreeMap<Character, Integer> huffMap = new TreeMap<Character, Integer>(
-			vcomp);
+			);
 
 	static int delLen;
 
 	public static void main(String[] args) throws IOException {
+		//400ms
 		long start = System.currentTimeMillis();
-		StringBuilder content = readCode(freqmap);
+		StringBuilder content = readCode(freqArr);
 		long end = System.currentTimeMillis();
 		System.out.println(end - start);
 		
@@ -38,7 +39,7 @@ public class Encoder {
 		Node root = buildHuffTree(c);
 
 		getHuffEncode(root, "", encodeMap);
-		
+		//1200ms
 		start = System.currentTimeMillis();
 		delLen = fulltoWrite(content.toString().toCharArray());
 		end = System.currentTimeMillis();
@@ -82,11 +83,10 @@ public class Encoder {
 	}
 
 	private static CLinkedList iniHuffList() {
-		huffMap.putAll(freqmap);
-		Node[] node = new Node[huffMap.size()];
-		int n = 0;
-		for (Character m : huffMap.keySet()) {
-			node[n++] = new Node(m, freqmap.get(m));
+		Node[] node = new Node[freqArr.length];
+		
+		for(int n = 0;n<node.length;n++){
+			node[n] = new Node((char)n, freqArr[n]);
 		}
 		CLinkedList c = new CLinkedList();
 		for (Node no : node) {
@@ -95,7 +95,7 @@ public class Encoder {
 		return c;
 	}
 
-	private static StringBuilder readCode(HashMap<Character, Integer> encodeMap)
+	private static StringBuilder readCode(int[] freqArr)
 			throws IOException {
 		StringBuilder content = new StringBuilder("");
 
@@ -105,9 +105,7 @@ public class Encoder {
 			while ((i = br.read()) != -1) {
 				char c = (char) i;
 				content.append(c);
-				Integer freq = encodeMap.get(c);
-				encodeMap.put(c, freq == null ? 1 : freq + 1);
-
+				 freqArr[c]+=1;
 			}
 
 		} catch (FileNotFoundException f) {
