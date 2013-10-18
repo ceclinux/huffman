@@ -152,9 +152,9 @@ public class Encoder {
 		// return writeBuffer(i.delete(0, BYTELONG), bf);
 		// }
 		int requirelen = i.length()-BYTELONG;
-		int q;
-		for (q = 0; q < requirelen;) {
-			bf.write(Integer.parseInt(i.substring(q, q += BYTELONG), BINARY));
+		int q=0;
+		while (q < requirelen) {
+			bf.write(toBin(i,q, q += BYTELONG));
 		}
 		return i.delete(0, q);
 
@@ -164,6 +164,16 @@ public class Encoder {
 		// return i;
 
 	}
+
+	private static int toBin(StringBuilder i, int q, int j) {
+		int binnum=i.charAt(q)-48;
+		for(int m=q+1;m<j;m++){
+			binnum=(binnum<<1)+(i.charAt(m)-48);
+		}
+		return binnum;
+	}
+
+
 
 	private static String writeFormat(HashMap<Character, String> map)
 			throws IOException {
