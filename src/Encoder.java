@@ -18,10 +18,10 @@ public class Encoder {
 	private static final String DIC_FILE = "abc.dic";
 	private static final String FILENAME = "莎士比亚全集英文版.txt";
 	// The map to store encoding
-	static HashMap<Character, Integer> encodeMap = new HashMap<Character, Integer>(171);
+	static HashMap<Character, Integer> freqmap = new HashMap<Character, Integer>(171);
 	// The map to store frequency
-	static HashMap<Character, String> freqmap = new HashMap<Character, String>();
-	static ValueComparator vcomp = new ValueComparator(encodeMap);
+	static HashMap<Character, String> encodeMap = new HashMap<Character, String>();
+	static ValueComparator vcomp = new ValueComparator(freqmap);
 	static TreeMap<Character, Integer> huffMap = new TreeMap<Character, Integer>(
 			vcomp);
 
@@ -29,7 +29,7 @@ public class Encoder {
 
 	public static void main(String[] args) throws IOException {
 		long start = System.currentTimeMillis();
-		StringBuilder content = readCode(encodeMap);
+		StringBuilder content = readCode(freqmap);
 		long end = System.currentTimeMillis();
 		System.out.println(end - start);
 		
@@ -37,7 +37,7 @@ public class Encoder {
 
 		Node root = buildHuffTree(c);
 
-		getHuffEncode(root, "", freqmap);
+		getHuffEncode(root, "", encodeMap);
 		
 		start = System.currentTimeMillis();
 		delLen = fulltoWrite(content.toString().toCharArray());
@@ -45,7 +45,7 @@ public class Encoder {
 		System.out.println(end - start);
 		
 		//经过测试，此时间忽略不计
-		Encoder.write(DIC_FILE, writeFormat(freqmap));
+		Encoder.write(DIC_FILE, writeFormat(encodeMap));
 		
 	}
 
@@ -82,11 +82,11 @@ public class Encoder {
 	}
 
 	private static CLinkedList iniHuffList() {
-		huffMap.putAll(encodeMap);
+		huffMap.putAll(freqmap);
 		Node[] node = new Node[huffMap.size()];
 		int n = 0;
 		for (Character m : huffMap.keySet()) {
-			node[n++] = new Node(m, encodeMap.get(m));
+			node[n++] = new Node(m, freqmap.get(m));
 		}
 		CLinkedList c = new CLinkedList();
 		for (Node no : node) {
@@ -129,7 +129,7 @@ public class Encoder {
 		 */
 
 		for (int i = 0; i < c.length; i++) {
-			String m = (freqmap.get(c[i]));
+			String m = (encodeMap.get(c[i]));
 			s = writeBuffer(t.append(m), bf);
 		}
 		try {
