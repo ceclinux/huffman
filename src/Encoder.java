@@ -36,13 +36,23 @@ public class Encoder {
 		getHuffEncode(root, "", encodeMap);
 		//1200ms
 		start = System.currentTimeMillis();
-		delLen = fulltoWrite(content.toString().toCharArray());
+	
+//		char[] i=content.toString().toCharArray();
+		//比上面大约省了5毫秒= = 
+		delLen = fulltoWrite(sbToCharArr(content));
 		end = System.currentTimeMillis();
 		System.out.println(end - start);
 		
 		//经过测试，此时间忽略不计
 		Encoder.write(DIC_FILE, writeFormat(encodeMap));
 		
+	}
+
+	private static char[] sbToCharArr(StringBuilder content) {
+		char[] i=new char[content.length()];
+		for(int y=0;y<i.length;y++)
+			i[y]=content.charAt(y);
+		return i;
 	}
 
 	private static Node buildHuffTree(CLinkedList c) {
@@ -100,7 +110,7 @@ public class Encoder {
 			while ((i = br.read()) != -1) {
 				char c = (char) i;
 				content.append(c);
-				 freqArr[c]+=1;
+				 freqArr[c]++;
 			}
 
 		} catch (FileNotFoundException f) {
