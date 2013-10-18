@@ -45,8 +45,7 @@ public class Encoder {
 		System.out.println(end - start);
 		
 		//经过测试，此时间忽略不计
-		end = System.currentTimeMillis();
-
+		Encoder.write(DIC_FILE, writeFormat(freqmap));
 		
 	}
 
