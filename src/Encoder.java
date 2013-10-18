@@ -6,8 +6,6 @@ import java.io.FileOutputStream;
 import java.io.FileReader;
 import java.io.IOException;
 import java.io.PrintWriter;
-import java.sql.Date;
-import java.util.GregorianCalendar;
 import java.util.HashMap;
 import java.util.TreeMap;
 
@@ -21,9 +19,6 @@ public class Encoder {
 	static int[] freqArr =new  int[127];
 	// The map to store frequency
 	static HashMap<Character, String> encodeMap = new HashMap<Character, String>();
-//	static ValueComparator vcomp = new ValueComparator(freqmap);
-	static TreeMap<Character, Integer> huffMap = new TreeMap<Character, Integer>(
-			);
 
 	static int delLen;
 
@@ -120,7 +115,7 @@ public class Encoder {
 		BufferedOutputStream bf = new BufferedOutputStream(
 				new FileOutputStream(COMPRESSED_FILE));
 		StringBuilder t = new StringBuilder();
-		int q;
+	
 		StringBuilder s = null;
 		/**
 		 * 不断的写入8bit长的字，最后多余不到的另外考虑
@@ -130,13 +125,11 @@ public class Encoder {
 			String m = (encodeMap.get(c[i]));
 			s = writeBuffer(t.append(m), bf);
 		}
-		try {
+		
 			int s1 = Integer.parseInt(t.toString(), BINARY);
 			delLen = BYTELONG - t.length();
 			bf.write(s1 << delLen);
-		} catch (Exception e) {
-			bf.write(0);
-		}
+	
 		bf.close();
 		return delLen;
 	}
@@ -177,22 +170,6 @@ public class Encoder {
 				getHuffEncode(root.left, encode + 0, h);
 			}
 
-		}
-	}
-
-	public static void writeEncode(String filename, String text,
-			HashMap<Character, Integer> t) {
-		try {
-			BufferedOutputStream out = new BufferedOutputStream(
-					new FileOutputStream(filename));
-			try {
-
-				// out.write(text);
-			} finally {
-				out.close();
-			}
-		} catch (IOException e) {
-			throw new RuntimeException(e);
 		}
 	}
 
