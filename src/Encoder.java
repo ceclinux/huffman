@@ -1,195 +1,183 @@
 import java.io.BufferedOutputStream;
 import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.FileReader;
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.sql.Date;
+import java.util.GregorianCalendar;
 import java.util.HashMap;
 import java.util.TreeMap;
 
 public class Encoder {
+	private static final int BYTELONG = 8;
+	private static final int BINARY = 2;
+	private static final String COMPRESSED_FILE = "abc.dat";
+	private static final String DIC_FILE = "abc.dic";
+	private static final String FILENAME = "莎士比亚全集英文版.txt";
+	// The map to store encoding
+	static HashMap<Character, Integer> encodeMap = new HashMap<Character, Integer>(171);
+	// The map to store frequency
 	static HashMap<Character, String> freqmap = new HashMap<Character, String>();
-	static int pianyi;
+	static ValueComparator vcomp = new ValueComparator(encodeMap);
+	static TreeMap<Character, Integer> huffMap = new TreeMap<Character, Integer>(
+			vcomp);
+
+	static int delLen;
 
 	public static void main(String[] args) throws IOException {
-		HashMap<Character, Integer> map = new HashMap<Character, Integer>();
-		ValueComparator vcomp = new ValueComparator(map);
-		TreeMap<Character, Integer> huffMap = new TreeMap<Character, Integer>(
-				vcomp);
-		BufferedReader br = new BufferedReader(new FileReader(
-				"莎士比亚全集英文版.txt"));
-		int i;
-		StringBuilder l = new StringBuilder("");
-		while ((i = br.read()) != -1) {
-			char c=(char) i;
-			l.append(c);
-			Integer freq = map.get((char) i);
-			map.put(c, freq == null ? 1 : freq + 1);
-		}
-		// String s;
+		long start = System.currentTimeMillis();
+		StringBuilder content = readCode(encodeMap);
+		long end = System.currentTimeMillis();
+		System.out.println(end - start);
+		
+		CLinkedList c = iniHuffList();
 
-		// while ((s = br.readLine()) != null) {
-		// l.append(s+'\n');
-		// // System.out.println(l);
-		// for (int i = 0; i < s.length(); i++) {
-		// char u = s.charAt(i);
-		// Integer freq = map.get(u);
-		// map.put(u, freq == null ? 1 : freq + 1);
-		// }
-		// Integer freq = map.get(10);
-		// map.put((char) 10, freq == null ? 0 : freq + 1);
-		// }
-		// l.deleteCharAt(l.length()-1);
-//		 System.out.println(map);
+		Node root = buildHuffTree(c);
 
-		huffMap.putAll(map);
-		Node[] node = new Node[huffMap.size()];
+		getHuffEncode(root, "", freqmap);
+		
+		start = System.currentTimeMillis();
+		delLen = fulltoWrite(content.toString().toCharArray());
+		end = System.currentTimeMillis();
+		System.out.println(end - start);
+		
+		//经过测试，此时间忽略不计
+		end = System.currentTimeMillis();
 
-		int n = 0;
-		for (Character m : huffMap.keySet()) {
-			node[n++] = new Node(m, map.get(m));
-		}
-		CLinkedList c = new CLinkedList();
-		for (Node no : node) {
-			c.addLast(no);
-		}
-		// System.out.println("c: "+c.getLength());
-		// System.out.println("c: first: "+c.getFirst().elem);
+		
+	}
+
+	private static Node buildHuffTree(CLinkedList c) {
 		Node z = null;
 		int length = c.getLength();
 		for (int t = 1; t < length; t++) {
 			z = new Node();
 			Node x = c.pop();
-			// System.out.println("After pop once: " + c);
 			z.left = x;
 			Node y = c.pop();
-			// System.out.println("After pop twice: " + c);
 			z.right = y;
 			z.setValue(x.value + y.value);
-
-			int q;
-			Node o;
-			int p = c.getLength();
-			int state = 0;
-			for (q = 0, o = c.getFirst(); q < p; q++) {
-				// System.out.println("current o is: " + o.value);
-				// System.out.println("current z is: "+z.elem);
-				// System.out.println("current c is: " + c);
-				if (z.value <= o.value) {
-					// System.out.print(o.elem);
-
-					c.insert(z, o);
-					// System.out.println("z.prev.next: "+z.prev.next.elem);
-					// System.out.println("z.next.prev: "+z.next.prev.elem);
-					// System.out.println("find somewhere to insert: " + c);
-					state = 1;
-					break;
-				}
-				o = o.next;
-
-			}
-			if (state == 0) {
-				c.addLast(z);
-				// System.out.println(c);
-				// System.out.println("nowhere to insert: " + c);
-			}
+			sortTree(c, z);
 		}
-		printHuffEncode(z, "", freqmap);
-		// System.out.println(map);
-		// writeEncode("abc.bat", l.toString(), map);
-		// writeFormat(map, new File("abc.dic"));
-		// writeFormat(map, new File("abc.dic"));
+		return z;
+	}
 
-		// char[] c1 = l.toString().toCharArray();
-		pianyi = fulltoWrite(l.toString().toCharArray());
-		// bf.close();
-		write("abc.dic", writeFormat(freqmap));
+	private static void sortTree(CLinkedList c, Node z) {
+		int p = c.getLength();
+		int state = 0;
+		Node o = c.getFirst();
+		for (int q = 0; q < p; q++) {
+			if (z.value <= o.value) {
+				c.insert(z, o);
+				state = 1;
+				break;
+			}
+			o = o.next;
+		}
+		if (state == 0) {
+			c.addLast(z);
+		}
+	}
+
+	private static CLinkedList iniHuffList() {
+		huffMap.putAll(encodeMap);
+		Node[] node = new Node[huffMap.size()];
+		int n = 0;
+		for (Character m : huffMap.keySet()) {
+			node[n++] = new Node(m, encodeMap.get(m));
+		}
+		CLinkedList c = new CLinkedList();
+		for (Node no : node) {
+			c.addLast(no);
+		}
+		return c;
+	}
+
+	private static StringBuilder readCode(HashMap<Character, Integer> encodeMap)
+			throws IOException {
+		StringBuilder content = new StringBuilder("");
+
+		try {
+			BufferedReader br = new BufferedReader(new FileReader(FILENAME));
+			int i;
+			while ((i = br.read()) != -1) {
+				char c = (char) i;
+				content.append(c);
+				Integer freq = encodeMap.get(c);
+				encodeMap.put(c, freq == null ? 1 : freq + 1);
+
+			}
+
+		} catch (FileNotFoundException f) {
+			System.out.println("no file " + FILENAME + " found");
+			f.printStackTrace();
+		}
+		return content;
 
 	}
 
 	private static int fulltoWrite(char[] c) throws IOException {
 		BufferedOutputStream bf = new BufferedOutputStream(
-				new FileOutputStream("abc.dat"));
-		String t = "";
+				new FileOutputStream(COMPRESSED_FILE));
+		StringBuilder t = new StringBuilder();
 		int q;
+		StringBuilder s = null;
+		/**
+		 * 不断的写入8bit长的字，最后多余不到的另外考虑
+		 */
 
 		for (int i = 0; i < c.length; i++) {
 			String m = (freqmap.get(c[i]));
-			// System.out.println("m: "+m);
-			t = writeBuffer(t + m, bf);
-			// System.out.println("t value: "+t);
+			s = writeBuffer(t.append(m), bf);
 		}
 		try {
-			int s = Integer.parseInt(t, 2);
-
-			for (pianyi = 0; pianyi < (8 - t.length()); pianyi++) {
-				s = (s << 1);
-//				System.out.println(s);
-			}
-			bf.write(s);
-			// bf.write(-1);
-//			System.out.println(Integer.toBinaryString(s));
+			int s1 = Integer.parseInt(t.toString(), BINARY);
+			delLen = BYTELONG - t.length();
+			bf.write(s1 << delLen);
 		} catch (Exception e) {
 			bf.write(0);
 		}
 		bf.close();
-		return pianyi;
+		return delLen;
 	}
 
-	private static int getlog2(int t) {
-		// TODO Auto-generated method stub
-		int degree = 1;
-
-		for (int i = 1; i < 8; i++) {
-			if ((t >>> i) > 0) {
-				degree++;
-			} else {
-				break;
-			}
-		}
-		return degree;
-	}
-
-	private static String writeBuffer(String i, BufferedOutputStream bf)
-			throws IOException {
+	private static StringBuilder writeBuffer(StringBuilder i,
+			BufferedOutputStream bf) throws IOException {
 		// TODO Auto-generated method stub
 		int leng = i.length();
-		if (leng >= 8) {
-			// System.out.println(i & 0xff);
-			// System.out.print(i.substring(0,8));
-			bf.write(Integer.parseInt(i.substring(0, 8), 2));
-
-			return writeBuffer(i.substring(8, leng), bf);
-		} else {
-			return i;
+		if (leng >= BYTELONG) {
+			bf.write(Integer.parseInt(i.substring(0, BYTELONG), BINARY));
+			return writeBuffer(i.delete(0, BYTELONG), bf);
 		}
+		return i;
 
 	}
 
 	private static String writeFormat(HashMap<Character, String> map)
 			throws IOException {
 		// TODO Auto-generated method stub
-
 		StringBuilder s = new StringBuilder();
 		for (Character c : map.keySet()) {
-			s = s.append((int) c + " " + map.get(c) + "\n");
+			s.append((int) c + " " + map.get(c) + "\n");
 		}
-		return s.toString() + "extra" + " " + pianyi;
+		return s.toString() + "extra" + " " + delLen;
 	}
 
-	static void printHuffEncode(Node root, String encode,
+	static void getHuffEncode(Node root, String encode,
 			HashMap<Character, String> h) {
 		if (root != null) {
 			if (root.right == null && root.right == null) {
-//				System.out.println(root.key + ": " + encode);
+				// System.out.println(root.key + ": " + encode);
 				h.put(root.key, encode + "");
 			}
 			if (root.right != null) {
-				printHuffEncode(root.right, encode + 1, h);
+				getHuffEncode(root.right, encode + 1, h);
 			}
 			if (root.left != null) {
-				printHuffEncode(root.left, encode + 0, h);
+				getHuffEncode(root.left, encode + 0, h);
 			}
 
 		}

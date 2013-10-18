@@ -26,13 +26,11 @@ public class Decoder {
 		
 		int pianyi=Integer.parseInt(s.split(" ")[1]);
 		System.out.println(pianyi);
-//		System.out.println(map);
 		int ch;
 		StringBuilder sb = new StringBuilder();
 
 		while (in.available() >= 1) {
 			ch = in.read();
-//			System.out.println("ch: " + ch);
 			String bs = Integer.toBinaryString(ch);
 			int bslength = bs.length();
 			if (bslength < 8) {
