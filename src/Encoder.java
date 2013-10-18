@@ -15,10 +15,11 @@ public class Encoder {
 	private static final String COMPRESSED_FILE = "abc.dat";
 	private static final String DIC_FILE = "abc.dic";
 	private static final String FILENAME = "莎士比亚全集英文版.txt";
-	// The map to store encoding
-	static int[] freqArr = new int[127];
 	// The map to store frequency
-	static HashMap<Character, String> encodeMap = new HashMap<Character, String>();
+
+	static int[] freqArr = new int[127];
+	// The map to store encoding
+	static 	String[] encodeMap=new String[127];
 
 	static int delLen;
 
@@ -130,7 +131,8 @@ public class Encoder {
 		 */
 //		long start = System.currentTimeMillis();
 		for (int i = 0; i < c.length; i++) {
-			writeBuffer(t.append(encodeMap.get(c[i])), bf);
+			writeBuffer(t.append(encodeMap[c[i]]), bf);
+//			System.out.println(t);
 		}
 //		long end = System.currentTimeMillis();
 //		System.out.println("here" + (end - start));
@@ -175,28 +177,28 @@ public class Encoder {
 
 
 
-	private static String writeFormat(HashMap<Character, String> map)
+	private static String writeFormat(String[] map)
 			throws IOException {
 		// TODO Auto-generated method stub
 		StringBuilder s = new StringBuilder();
-		for (Character c : map.keySet()) {
-			s.append((int) c + " " + map.get(c) + "\n");
+		for (int c=0;c<map.length;c++) {
+			s.append((int) c + " " + map[c] + "\n");
 		}
 		return s.toString() + "extra" + " " + delLen;
 	}
 
 	static void getHuffEncode(Node root, String encode,
-			HashMap<Character, String> h) {
+			String[] encodeMap) {
 		if (root != null) {
 			if (root.right == null && root.right == null) {
 				// System.out.println(root.key + ": " + encode);
-				h.put(root.key, encode + "");
+				encodeMap[(int)root.key]=encode;
 			}
 			if (root.right != null) {
-				getHuffEncode(root.right, encode + 1, h);
+				getHuffEncode(root.right, encode + 1, encodeMap);
 			}
 			if (root.left != null) {
-				getHuffEncode(root.left, encode + 0, h);
+				getHuffEncode(root.left, encode + 0, encodeMap);
 			}
 
 		}
