@@ -101,13 +101,13 @@ public class Encoder {
 	}
 
 	private static StringBuilder readCode(int[] freqArr) throws IOException {
-		StringBuilder content = new StringBuilder("");
+		StringBuilder content = new StringBuilder(8);
 
 		try {
 			BufferedReader br = new BufferedReader(new FileReader(FILENAME));
 			int i;
 			while ((i = br.read()) != -1) {
-				char c = (char) i;
+				char c =  (char) i;
 				content.append(c);
 				freqArr[c]++;
 			}
