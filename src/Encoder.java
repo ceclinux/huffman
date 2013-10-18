@@ -122,18 +122,18 @@ public class Encoder {
 
 	private static int fulltoWrite(char[] c) throws IOException {
 		BufferedOutputStream bf = new BufferedOutputStream(
-				new FileOutputStream(COMPRESSED_FILE));
+				new FileOutputStream(COMPRESSED_FILE),1024*1024);
 		StringBuilder t = new StringBuilder();
 		// StringBuilder s = null;
 		/**
 		 * 不断的写入8bit长的字，最后多余不到的另外考虑
 		 */
-		long start = System.currentTimeMillis();
+//		long start = System.currentTimeMillis();
 		for (int i = 0; i < c.length; i++) {
 			writeBuffer(t.append(encodeMap.get(c[i])), bf);
 		}
-		long end = System.currentTimeMillis();
-		System.out.println("here" + (end - start));
+//		long end = System.currentTimeMillis();
+//		System.out.println("here" + (end - start));
 
 		int s1 = Integer.parseInt(t.toString(), BINARY);
 		delLen = BYTELONG - t.length();
