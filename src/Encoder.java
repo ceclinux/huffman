@@ -15,7 +15,7 @@ public class Encoder {
 	private static final int BINARY = 2;
 	private static final String COMPRESSED_FILE = "abc.dat";
 	private static final String DIC_FILE = "abc.dic";
-	private static final String FILE_NAME = "tokillamockingbird.txt";
+	private static final String FILE_NAME = "莎士比亚全集英文版.txt";
 	// The map to store frequency
 
 	static int[] freqArr = new int[127];
@@ -25,11 +25,11 @@ public class Encoder {
 	static int delLen;
 
 	public static void main(String[] args) throws IOException {
-		// 400ms
+		// 100ms之内
 		long start = System.currentTimeMillis();
-		StringBuilder content = readCode(freqArr);
-//	
-//		System.out.println(end - start);
+		char[] content = readCode(freqArr);
+	long end = System.currentTimeMillis();
+		System.out.println(end - start);
 
 		CLinkedList c = iniHuffList();
 
@@ -37,25 +37,18 @@ public class Encoder {
 
 		getHuffEncode(root, "", encodeMap);
 		// 600s
-//		start = System.currentTimeMillis();
+		start = System.currentTimeMillis();
 
 		// char[] i=content.toString().toCharArray();
 		// 比上面大约省了5毫秒= =
-		delLen = fulltoWrite(sbToCharArr(content));
-//		end = System.currentTimeMillis();
-		long end = System.currentTimeMillis();
+		delLen = fulltoWrite(content);
+		end = System.currentTimeMillis();
+		
 		System.out.println(end - start);
 
 		// 经过测试，此时间忽略不计
 		Encoder.write(DIC_FILE, writeFormat(encodeMap));
 
-	}
-
-	private static char[] sbToCharArr(StringBuilder content) {
-		char[] i = new char[content.length()];
-		for (int y = 0; y < i.length; y++)
-			i[y] = content.charAt(y);
-		return i;
 	}
 
 	private static Node buildHuffTree(CLinkedList c) {
@@ -104,20 +97,20 @@ public class Encoder {
 		return c;
 	}
 
-	private static StringBuilder readCode(int[] freqArr) throws IOException {
-		
-		StringBuilder content = null;
+	private static char[] readCode(int[] freqArr) throws IOException {
+		char[] a=null;
+//		StringBuilder content = null;
 		try {
 			
 			File file=new File(FILE_NAME);
 //		System.out.println(file.length());
-			content = new StringBuilder((int) file.length());
+//			content = new StringBuilder((int) file.length());
 			BufferedReader br = new BufferedReader(new FileReader(file));
-			int i;
-			while ((i = br.read()) != -1) {
-				char c =  (char) i;
-				content.append(c);
-				freqArr[c]++;
+			 a=new char[(int) file.length()];
+//			int i;
+			br.read(a, 0, a.length);
+			for(int i=0;i<a.length;i++){
+				freqArr[a[i]]++;
 			}
 			
 
@@ -126,7 +119,7 @@ public class Encoder {
 			f.printStackTrace();
 		}
 //		System.out.println(content.length());
-		return content;
+		return a;
 
 	}
 
