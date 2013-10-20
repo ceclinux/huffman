@@ -12,12 +12,14 @@ public class Node {
 	public Node() {
 	}
 
-	// public void setLeft(Node l){
-	// left=l;
-	// }
-	// public void setRight(Node r){
-	// right=r;
-	// }
+	public void setLeft(Node l) {
+		left = l;
+	}
+
+	public void setRight(Node r) {
+		right = r;
+	}
+
 	public void setValue(int v) {
 		value = v;
 	}

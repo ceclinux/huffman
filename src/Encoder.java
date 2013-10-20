@@ -6,6 +6,7 @@ import java.io.FileOutputStream;
 import java.io.FileReader;
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.TreeMap;
 
@@ -14,7 +15,7 @@ public class Encoder {
 	private static final int BINARY = 2;
 	private static final String COMPRESSED_FILE = "abc.dat";
 	private static final String DIC_FILE = "abc.dic";
-	private static final String FILENAME = "莎士比亚全集英文版.txt";
+	private static final String FILE_NAME = "tokillamockingbird.txt";
 	// The map to store frequency
 
 	static int[] freqArr = new int[127];
@@ -27,21 +28,22 @@ public class Encoder {
 		// 400ms
 		long start = System.currentTimeMillis();
 		StringBuilder content = readCode(freqArr);
-		long end = System.currentTimeMillis();
-		System.out.println(end - start);
+//	
+//		System.out.println(end - start);
 
 		CLinkedList c = iniHuffList();
 
 		Node root = buildHuffTree(c);
 
 		getHuffEncode(root, "", encodeMap);
-		// 1200ms
-		start = System.currentTimeMillis();
+		// 600s
+//		start = System.currentTimeMillis();
 
 		// char[] i=content.toString().toCharArray();
 		// 比上面大约省了5毫秒= =
 		delLen = fulltoWrite(sbToCharArr(content));
-		end = System.currentTimeMillis();
+//		end = System.currentTimeMillis();
+		long end = System.currentTimeMillis();
 		System.out.println(end - start);
 
 		// 经过测试，此时间忽略不计
@@ -60,11 +62,12 @@ public class Encoder {
 		Node z = null;
 		int length = c.getLength();
 		for (int t = 1; t < length; t++) {
-			z = new Node();
+			
 			Node x = c.pop();
-			z.left = x;
 			Node y = c.pop();
-			z.right = y;
+			z = new Node();
+			z.setLeft(x);
+			z.setRight(y);
 			z.setValue(x.value + y.value);
 			sortTree(c, z);
 		}
@@ -102,27 +105,33 @@ public class Encoder {
 	}
 
 	private static StringBuilder readCode(int[] freqArr) throws IOException {
-		StringBuilder content = new StringBuilder(8);
-
+		
+		StringBuilder content = null;
 		try {
-			BufferedReader br = new BufferedReader(new FileReader(FILENAME));
+			
+			File file=new File(FILE_NAME);
+//		System.out.println(file.length());
+			content = new StringBuilder((int) file.length());
+			BufferedReader br = new BufferedReader(new FileReader(file));
 			int i;
 			while ((i = br.read()) != -1) {
 				char c =  (char) i;
 				content.append(c);
 				freqArr[c]++;
 			}
+			
 
 		} catch (FileNotFoundException f) {
-			System.out.println("no file " + FILENAME + " found");
+			System.out.println("no file " + FILE_NAME + " found");
 			f.printStackTrace();
 		}
+//		System.out.println(content.length());
 		return content;
 
 	}
 
 	private static int fulltoWrite(char[] c) throws IOException {
-		BufferedOutputStream bf = new BufferedOutputStream(
+		CecBufferedOutPutStream bf = new CecBufferedOutPutStream(
 				new FileOutputStream(COMPRESSED_FILE),1024*1024);
 		StringBuilder t = new StringBuilder();
 		// StringBuilder s = null;
@@ -130,12 +139,11 @@ public class Encoder {
 		 * 不断的写入8bit长的字，最后多余不到的另外考虑
 		 */
 //		long start = System.currentTimeMillis();
+		
+		ArrayList<Integer> a=new ArrayList<>();
 		for (int i = 0; i < c.length; i++) {
 			writeBuffer(t.append(encodeMap[c[i]]), bf);
-//			System.out.println(t);
 		}
-//		long end = System.currentTimeMillis();
-//		System.out.println("here" + (end - start));
 
 		int s1 = Integer.parseInt(t.toString(), BINARY);
 		delLen = BYTELONG - t.length();
@@ -145,26 +153,14 @@ public class Encoder {
 		return delLen;
 	}
 
-	private static StringBuilder writeBuffer(StringBuilder i,
+	private static void writeBuffer(StringBuilder i,
 			BufferedOutputStream bf) throws IOException {
-		// TODO Auto-generated method stub
-		
-		// if (leng >= BYTELONG) {
-		// bf.write(Integer.parseInt(i.substring(0, BYTELONG), BINARY));
-		// return writeBuffer(i.delete(0, BYTELONG), bf);
-		// }
 		int requirelen = i.length()-BYTELONG;
 		int q=0;
 		while (q < requirelen) {
 			bf.write(toBin(i,q, q += BYTELONG));
 		}
-		return i.delete(0, q);
-
-		// for(int leng = i.length();leng>8;leng-=8){
-		// bf.write(Integer.parseInt(i.substring(0, BYTELONG), BINARY));
-		// }
-		// return i;
-
+		i.delete(0, q);
 	}
 
 	private static int toBin(StringBuilder i, int q, int j) {

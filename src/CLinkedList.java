@@ -3,9 +3,7 @@ public class CLinkedList {
 	private int length;
 	public static void main(String[] args){
 		CLinkedList c=new CLinkedList();
-//		c.addFirst(new Node(5));
-//		c.addFirst(new Node(3));
-//		c.addFirst(new Node(7));
+
 	
 		System.out.println(c);
 	}
@@ -76,23 +74,5 @@ public class CLinkedList {
 		delete(t);
 		return t;
 	}
-//	public void swap(Node i,Node t){
-//		i.next.prev=t;
-//		i.prev.next=t;
-//		t.next.prev=i;
-//		t.prev.next=i;
-//		Node m=i.next;
-//		i.next=t.next;
-//		t.next=m;
-//		m=i.prev;
-//		i.prev=t.prev;
-//		t.prev=m;
-//		m=t.next;
-//		t.next=i.next;
-//		i.next=m;
-//		m=t.prev;
-//		t.prev=i.prev;
-//		i.prev=m;
-//		
-//	}
+
 }
