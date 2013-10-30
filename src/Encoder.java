@@ -13,22 +13,22 @@ import java.util.TreeMap;
 public class Encoder {
 	private static final int BYTELONG = 8;
 	private static final int BINARY = 2;
-	private static final String COMPRESSED_FILE = "abc.dat";
-	private static final String DIC_FILE = "abc.dic";
-	private static final String FILE_NAME = "莎士比亚全集英文版.txt";
+//	private static final String COMPRESSED_FILE = "abc.dat";
+//	private static final String DIC_FILE = "abc.dic";
+//	private static final String FILE_NAME = "莎士比亚全集英文版.txt";
 	// The map to store frequency
 
 	static int[] freqArr = new int[127];
 	// The map to store encoding
-	static 	String[] encodeMap=new String[127];
+	static String[] encodeMap = new String[127];
 
 	static int delLen;
 
 	public static void main(String[] args) throws IOException {
 		// 100ms之内
 		long start = System.currentTimeMillis();
-		char[] content = readCode(freqArr);
-	long end = System.currentTimeMillis();
+		char[] content = readCode(freqArr,args[0]);
+		long end = System.currentTimeMillis();
 		System.out.println(end - start);
 
 		CLinkedList c = iniHuffList();
@@ -41,13 +41,13 @@ public class Encoder {
 
 		// char[] i=content.toString().toCharArray();
 		// 比上面大约省了5毫秒= =
-		delLen = fulltoWrite(content);
+		delLen = fulltoWrite(content,args[1]);
 		end = System.currentTimeMillis();
-		
+
 		System.out.println(end - start);
 
 		// 经过测试，此时间忽略不计
-		Encoder.write(DIC_FILE, writeFormat(encodeMap));
+		Encoder.write(args[2], writeFormat(encodeMap));
 
 	}
 
@@ -55,7 +55,7 @@ public class Encoder {
 		Node z = null;
 		int length = c.getLength();
 		for (int t = 1; t < length; t++) {
-			
+
 			Node x = c.pop();
 			Node y = c.pop();
 			z = new Node();
@@ -97,43 +97,42 @@ public class Encoder {
 		return c;
 	}
 
-	private static char[] readCode(int[] freqArr) throws IOException {
-		char[] a=null;
-//		StringBuilder content = null;
+	private static char[] readCode(int[] freqArr,String filename) throws IOException {
+		char[] a = null;
+		// StringBuilder content = null;
 		try {
-			
-			File file=new File(FILE_NAME);
-//		System.out.println(file.length());
-//			content = new StringBuilder((int) file.length());
+
+			File file = new File(filename);
+			// System.out.println(file.length());
+			// content = new StringBuilder((int) file.length());
 			BufferedReader br = new BufferedReader(new FileReader(file));
-			 a=new char[(int) file.length()];
-//			int i;
+			a = new char[(int) file.length()];
+			// int i;
 			br.read(a, 0, a.length);
-			for(int i=0;i<a.length;i++){
+			for (int i = 0; i < a.length; i++) {
 				freqArr[a[i]]++;
 			}
-			
 
 		} catch (FileNotFoundException f) {
-			System.out.println("no file " + FILE_NAME + " found");
+			System.out.println("no file " + filename + " found");
 			f.printStackTrace();
 		}
-//		System.out.println(content.length());
+		// System.out.println(content.length());
 		return a;
 
 	}
 
-	private static int fulltoWrite(char[] c) throws IOException {
-		CecBufferedOutPutStream bf = new CecBufferedOutPutStream(
-				new FileOutputStream(COMPRESSED_FILE),1024*1024);
+	private static int fulltoWrite(char[] c,String compressedFile) throws IOException {
+		BufferedOutputStream bf = new BufferedOutputStream(
+				new FileOutputStream(compressedFile), 1024 * 1024);
 		StringBuilder t = new StringBuilder();
 		// StringBuilder s = null;
 		/**
 		 * 不断的写入8bit长的字，最后多余不到的另外考虑
 		 */
-//		long start = System.currentTimeMillis();
-		
-		ArrayList<Integer> a=new ArrayList<>();
+		// long start = System.currentTimeMillis();
+
+		ArrayList<Integer> a = new ArrayList<>();
 		for (int i = 0; i < c.length; i++) {
 			writeBuffer(t.append(encodeMap[c[i]]), bf);
 		}
@@ -146,42 +145,38 @@ public class Encoder {
 		return delLen;
 	}
 
-	private static void writeBuffer(StringBuilder i,
-			BufferedOutputStream bf) throws IOException {
-		int requirelen = i.length()-BYTELONG;
-		int q=0;
+	private static void writeBuffer(StringBuilder i, BufferedOutputStream bf)
+			throws IOException {
+		int requirelen = i.length() - BYTELONG;
+		int q = 0;
 		while (q < requirelen) {
-			bf.write(toBin(i,q, q += BYTELONG));
+			bf.write(toBin(i, q, q += BYTELONG));
 		}
 		i.delete(0, q);
 	}
 
 	private static int toBin(StringBuilder i, int q, int j) {
-		int binnum=i.charAt(q)-48;
-		for(int m=q+1;m<j;m++){
-			binnum=(binnum<<1)+(i.charAt(m)-48);
+		int binnum = i.charAt(q) - 48;
+		for (int m = q + 1; m < j; m++) {
+			binnum = (binnum << 1) + (i.charAt(m) - 48);
 		}
 		return binnum;
 	}
 
-
-
-	private static String writeFormat(String[] map)
-			throws IOException {
+	private static String writeFormat(String[] map) throws IOException {
 		// TODO Auto-generated method stub
 		StringBuilder s = new StringBuilder();
-		for (int c=0;c<map.length;c++) {
+		for (int c = 0; c < map.length; c++) {
 			s.append((int) c + " " + map[c] + "\n");
 		}
 		return s.toString() + "extra" + " " + delLen;
 	}
 
-	static void getHuffEncode(Node root, String encode,
-			String[] encodeMap) {
+	static void getHuffEncode(Node root, String encode, String[] encodeMap) {
 		if (root != null) {
 			if (root.right == null && root.right == null) {
-				// System.out.println(root.key + ": " + encode);
-				encodeMap[(int)root.key]=encode;
+//				 System.out.println(root.key + ": " + encode);
+				encodeMap[(int) root.key] = encode;
 			}
 			if (root.right != null) {
 				getHuffEncode(root.right, encode + 1, encodeMap);

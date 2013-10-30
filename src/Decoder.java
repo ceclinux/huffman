@@ -13,74 +13,58 @@ import java.util.HashMap;
 
 public class Decoder {
 	public static void main(String[] args) throws IOException {
+		File f = new File(args[0]);
 		HashMap<String, Integer> map = new HashMap<String, Integer>();
-		BufferedInputStream in = new BufferedInputStream(new FileInputStream(
-				"abc.dat"));
-		BufferedReader bf = new BufferedReader(new FileReader("abc.dic"));
+		BufferedInputStream in = new BufferedInputStream(new FileInputStream(f));
+		BufferedReader bf = new BufferedReader(new FileReader(args[1]));
 		String s;
 
 		while (!(s = bf.readLine()).startsWith("extra")) {
 			String[] table = s.split(" ");
 			map.put(table[1], Integer.parseInt(table[0]));
 		}
-		
-		int pianyi=Integer.parseInt(s.split(" ")[1]);
-		System.out.println(pianyi);
-		int ch;
+		// the number of shift space for the last bit
+		int shift = Integer.parseInt(s.split(" ")[1]);
+		long star = System.currentTimeMillis();
 		StringBuilder sb = new StringBuilder();
+		byte[] encodeArray = new byte[(int) f.length()];
 
 		while (in.available() >= 1) {
-			ch = in.read();
-			String bs = Integer.toBinaryString(ch);
-			int bslength = bs.length();
-			if (bslength < 8) {
-				for (int i = 0; i < 8 - bslength; i++) {
-					bs = '0' + bs;
-				}
-			}
-			
-			sb.append(bs);
-			
-			// int t=in.read();
-			// sb.append(Integer.toBinaryString(t));
-			
+			in.read(encodeArray, 0, encodeArray.length);
 
-			// Integer t;
-			// if((t=map.get(ch))==null){
-			// t=map.get((map.get(ch)>>8)+t);
-			// }
-			// int m=t;
-			// sb.append((char) m);
-			// System.out.println(sb);
+			for (int i = 0; i < encodeArray.length; i++) {
+				// System.out.println(encodeArray[i]);
+
+				// System.out.println("b: "+b);
+				String encodeString = Integer
+						.toBinaryString(encodeArray[i] & 0xff);
+				// System.out.println("encodeString: "+encodeString);
+				int shiftLeng = 8 - encodeString.length();
+				for (int t = 0; t < shiftLeng; t++) {
+					encodeString = '0' + encodeString;
+				}
+				sb.append(encodeString);
+			}
 
 		}
-//		System.out.println(sb);
-//		System.out.println( sb);
-//		int z=in.read();
-//		sb.append(Integer.toBinaryString(z));
-//		System.out.println(sb);
-		// int s1=in.read();
-		// sb.append(Integer.toBinaryString(s1));
-		sb=sb.delete(sb.length()-pianyi, sb.length());
-//		 System.out.println( sb);
-		// System.out.println(sb);
+		long start2 = System.currentTimeMillis();
+
+		System.out.println(start2 - star);
+		sb = sb.delete(sb.length() - shift, sb.length());
+
 		Integer t;
 		int start = 0;
 		StringBuilder outtext = new StringBuilder();
-		for (int end = 1; end <= sb.length(); end++) {
-			// System.out.println(sb.substring(start, end));
-			// System.out.println(map.get(sb.substring(start, end)));
+		int sblength = sb.length();
+		for (int end = 1; end <= sblength; end++) {
 			if ((t = map.get(sb.substring(start, end))) != null) {
 
 				outtext.append((char) (int) t);
 
-//				System.out.println(t);
 				start = end;
 			}
 		}
-		// outtext.deleteCharAt(outtext.length()-1);
-//		System.out.println(outtext);
-		Decoder.write("abc-final", outtext.toString());
+		Decoder.write(args[2], outtext.toString());
 
 	}
 
@@ -93,7 +77,7 @@ public class Decoder {
 				String s;
 				while ((s = in.readLine()) != null) {
 					sb.append(s);
-					// sb.append("\n");
+
 				}
 			} finally {
 				in.close();
@@ -111,7 +95,7 @@ public class Decoder {
 					new File(filename).getAbsoluteFile());
 			try {
 				out.print(text);
-//				out.print('\n');
+
 			} finally {
 				out.close();
 			}
